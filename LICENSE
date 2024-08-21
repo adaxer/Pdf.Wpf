@@ -19,3 +19,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+This project includes third-party software:
+- ImageSharp (Six Labors) - Licensed under the Apache License, Version 2.0.
+- PdfiumCore - Licensed under the Apache License, Version 2.0.
+
+For details, please see the included NOTICE file.

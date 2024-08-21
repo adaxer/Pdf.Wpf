@@ -1,0 +1,33 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:adaxer="clr-namespace:ADaxer.Pdf.Wpf">
+
+    <adaxer:ViewModeConverter x:Key="vmc"/>
+
+    <Style TargetType="{x:Type adaxer:PdfView}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="adaxer:PdfView">
+                    <ScrollViewer PanningMode="Both" HorizontalScrollBarVisibility="Auto" Padding="4"
+                  x:Name="PART_ScrollViewer" Background="{TemplateBinding Background}" CanContentScroll="True">
+                        <ItemsControl x:Name="PART_Items" HorizontalAlignment="Center" ItemsSource="{Binding Pages, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel VirtualizationMode="Recycling"  IsItemsHost="True" Orientation="{Binding ViewMode, 
+                                                                  RelativeSource={RelativeSource AncestorType={x:Type adaxer:PdfView}}, 
+                                                                  Converter={StaticResource vmc}}"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type adaxer:PdfPage}">
+                                    <Image Source="{Binding FullImage}" Width="{Binding UIWidth}" Height="{Binding UIHeight}" Margin="8"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

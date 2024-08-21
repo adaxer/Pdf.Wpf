@@ -30,7 +30,7 @@ To use the `PdfView` control in your WPF project, follow these simple steps:
    dotnet add package PdfViewerControl --version 1.0.0
    ```
 
-   You can find the package [here](https://www.nuget.org/packages/ADaxer.Pdf.Wpf).
+   You can find the package [here](https://www.nuget.org/packages/PdfViewerControl).
 
 3. **XAML Usage**: Add the `PdfView` control to your XAML file.
 
