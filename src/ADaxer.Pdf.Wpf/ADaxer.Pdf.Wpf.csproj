@@ -10,19 +10,49 @@
 
 	<PropertyGroup>
 		<PackageId>ADaxer.Pdf.Wpf</PackageId>
-		<Version>1.0.0</Version>
+		<Version>1.1.2</Version>
 		<Authors>Andreas Daxer</Authors>
 		<Company>Andreas Daxer - Entwicklung – Schulung – Beratung mit Microsoft.NET</Company>
 		<Description>A PdfViewer for WPF.</Description>
-		<PackageReleaseNotes>Initial release.</PackageReleaseNotes>
-		<Copyright>Copyright 2024 Andreas Daxer</Copyright>
+		<PackageReleaseNotes>Source Link Enabled.</PackageReleaseNotes>
+		<Copyright>Copyright 2024, 2025 Andreas Daxer</Copyright>
 		<PackageTags>WPF PDF</PackageTags>
 		<RepositoryUrl>https://github.com/adaxer/Pdf.Wpf</RepositoryUrl>
+
+		<!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+		<!-- Embed source files that are not tracked by the source control manager in the PDB -->
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>portable</DebugType>
+		<!-- ✅ Change from "embedded" to "portable" -->
+		<IncludeSymbols>true</IncludeSymbols>
+		<!-- ✅ Explicitly request symbols -->
+		<IncludeSource>true</IncludeSource>
+		<!-- ✅ Explicitly request source code -->
+		<SymbolsPackageFormat>snupkg</SymbolsPackageFormat>
+		<!-- ✅ Forces NuGet to create debug package -->
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="PDFiumCore" Version="128.0.6569" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All">
+			<!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
+		</PackageReference>
+		<PackageReference Include="PDFiumCore" Version="134.0.6982" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
+		<None Include="..\..\NOTICE.txt" Pack="true" PackagePath=""/>
+		<None Include="..\..\README.md" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
 </Project>

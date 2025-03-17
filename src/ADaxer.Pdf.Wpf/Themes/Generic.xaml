@@ -20,7 +20,7 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type adaxer:PdfPage}">
-                                    <Image Source="{Binding FullImage}" Width="{Binding UIWidth}" Height="{Binding UIHeight}" Margin="8"/>
+                                    <Image Source="{Binding FullImage}" Width="{Binding UIWidth}" Height="{Binding UIHeight}" Margin="2"/>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>

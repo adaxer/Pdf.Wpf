@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ADaxer.Pdf.Wpf", "src\ADaxe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ADaxer.Pdf.Wpf.DemoApp", "src\ADaxer.Pdf.Wpf.DemoApp\ADaxer.Pdf.Wpf.DemoApp.csproj", "{6650E37F-BE21-4F9F-827E-32E87FCDDED7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NugetTestApp", "src\NugetTestApp\NugetTestApp.csproj", "{2A4A207D-4ED0-484C-BBED-4E2C712C24B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{6650E37F-BE21-4F9F-827E-32E87FCDDED7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6650E37F-BE21-4F9F-827E-32E87FCDDED7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6650E37F-BE21-4F9F-827E-32E87FCDDED7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A4A207D-4ED0-484C-BBED-4E2C712C24B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A4A207D-4ED0-484C-BBED-4E2C712C24B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A4A207D-4ED0-484C-BBED-4E2C712C24B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A4A207D-4ED0-484C-BBED-4E2C712C24B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,6 +36,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{2637D1C3-A19F-43BA-8BF2-5FD651CF0AAD} = {5A5AC7D0-6DA0-47B5-B71C-48E456D394BF}
 		{6650E37F-BE21-4F9F-827E-32E87FCDDED7} = {5A5AC7D0-6DA0-47B5-B71C-48E456D394BF}
+		{2A4A207D-4ED0-484C-BBED-4E2C712C24B6} = {5A5AC7D0-6DA0-47B5-B71C-48E456D394BF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1AEA77E4-5DDB-4CDC-BADD-D41261AC17C0}

@@ -14,6 +14,18 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         pdf.PdfBytes = File.ReadAllBytes("C:\\temp\\mittel.pdf");
+        //Hausewech();
+    }
+
+    private async void Hausewech()
+    {
+        while (true)
+        {
+            pdf.PdfBytes = File.ReadAllBytes("C:\\temp\\mittel.pdf");
+            await Task.Delay(5000);
+            pdf.PdfBytes = null;
+            await Task.Delay(5000);
+        }
     }
 
 

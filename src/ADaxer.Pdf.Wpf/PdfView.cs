@@ -15,7 +15,7 @@ public class PdfView : Control
     private bool _isZoomInvalid;
     private ScrollViewer _scrollViewer = default!;
     private ItemsControl _itemsControl = default!;
-    private List<PdfPage> _pages = new();
+    private List<PdfPage> _pages = [];
     private Panel _panel = default!;
 
     static PdfView()
@@ -134,7 +134,7 @@ public class PdfView : Control
             (Key.PageUp, ModifierKeys.None) => PreviousPageCommand,
             (Key.OemPlus, ModifierKeys.Control) => ZoomInCommand,
             (Key.OemMinus, ModifierKeys.Control) => ZoomOutCommand,
-            _ => default(ICommand)
+            _ => default
         };
 
         if (toExecute == default(ICommand))
@@ -154,7 +154,7 @@ public class PdfView : Control
 
     #endregion
 
-    private Panel FindItemsPanel(FrameworkElement element)
+    private static Panel FindItemsPanel(FrameworkElement element)
     {
         for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
         {
@@ -173,13 +173,13 @@ public class PdfView : Control
         return default!;
     }
 
-    private void OnViewModeChanged(DependencyPropertyChangedEventArgs e)
+    private void OnViewModeChanged(DependencyPropertyChangedEventArgs _)
     {
         Trace.TraceInformation($"OnViewModeChanged: {ViewMode}");
         InvalidateVisual();
     }
 
-    private void OnCurrentPageChanged(DependencyPropertyChangedEventArgs e)
+    private void OnCurrentPageChanged(DependencyPropertyChangedEventArgs _)
     {
         int correctPage = Math.Min(PageCount, Math.Max(1, CurrentPage));
         Trace.TraceInformation($"OnCurrentPageChanged: {CurrentPage} (correct {correctPage})");
@@ -197,7 +197,7 @@ public class PdfView : Control
         }
     }
 
-    private void OnZoomChanged(DependencyPropertyChangedEventArgs e)
+    private void OnZoomChanged(DependencyPropertyChangedEventArgs _)
     {
         Trace.TraceInformation($"OnZoomChanged: {Zoom}");
         InvalidateVisual();
@@ -209,7 +209,16 @@ public class PdfView : Control
         Trace.TraceInformation($"OnPdfBytesChanged: {e.OldValue} => {e.NewValue}");
         _isZoomInvalid = true;
         CurrentPage = 1;
-        _pages = new List<PdfPage>(((byte[])PdfBytes).ToPages());
+        if (PdfBytes == null)
+        {
+            Visibility = Visibility.Collapsed;
+            Pages.Clear();
+        }
+        else
+        {
+            Visibility = Visibility.Visible;
+            _pages = [.. ((byte[])PdfBytes).ToPages()];
+        }
         InvalidateVisual();
     }
 
@@ -222,8 +231,7 @@ public class PdfView : Control
                 double offset = 0;
                 for (int i = 0; i < correctPage - 1; i++)
                 {
-                    var child = _panel.Children[i] as FrameworkElement;
-                    if (child != null)
+                    if (_panel.Children[i] is FrameworkElement child)
                     {
                         offset += child.ActualHeight;
                     }
@@ -251,10 +259,10 @@ public class PdfView : Control
         {
             case PdfViewModes.Double:
                 int first = 2 * (((int)CurrentPage - 1) / 2);
-                pagesToDraw = Enumerable.Range(first, (PageCount < 2) ? 1 : 2).ToList();
+                pagesToDraw = [.. Enumerable.Range(first, (PageCount < 2) ? 1 : 2)];
                 break;
             case PdfViewModes.Scrolling:
-                pagesToDraw = Enumerable.Range(0, PageCount).ToList();
+                pagesToDraw = [.. Enumerable.Range(0, PageCount)];
                 break;
             default:
                 break;
@@ -327,8 +335,7 @@ public class PdfView : Control
     private void FitHeight()
     {
         if (PageCount == 0) return;
-        var page = _pages[CurrentPage - 1];
-        Zoom = 0.98;
+        Zoom = 1.0;
     }
 
     private void PreviousPage()
@@ -367,22 +374,15 @@ public class PdfView : Control
         Zoom = (Math.Round(currentZoom * 10) / 10) + 0.1;
     }
 
-    private class PdfViewCommand : ICommand
+    private class PdfViewCommand(Action action) : ICommand
     {
-        private Action _action;
-
-        public PdfViewCommand(Action action)
-        {
-            this._action = action;
-        }
-
         public event EventHandler? CanExecuteChanged;
 
         public bool CanExecute(object? parameter) => true;
 
         public void Execute(object? parameter)
         {
-            _action();
+            action();
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
     }
