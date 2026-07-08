@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ADaxer.Pdf.Wpf.DemoApp/ADaxer.Pdf.Wpf.DemoApp.csproj" />
+    <Project Path="src/ADaxer.Pdf.Wpf/ADaxer.Pdf.Wpf.csproj" />
+  </Folder>
+</Solution>

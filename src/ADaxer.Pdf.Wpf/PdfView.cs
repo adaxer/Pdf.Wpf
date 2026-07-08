@@ -10,17 +10,23 @@ namespace ADaxer.Pdf.Wpf;
 
 [TemplatePart(Name = "PART_ScrollViewer", Type = typeof(ScrollViewer))]
 [TemplatePart(Name = "PART_Items", Type = typeof(ItemsControl))]
-public class PdfView : Control
+public class PdfView : Control, IDisposable
 {
     private bool _isZoomInvalid;
     private ScrollViewer _scrollViewer = default!;
     private ItemsControl _itemsControl = default!;
     private List<PdfPage> _pages = [];
     private Panel _panel = default!;
+    private PdfDocument? _document;
 
     static PdfView()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(PdfView), new FrameworkPropertyMetadata(typeof(PdfView)));
+    }
+
+    public PdfView()
+    {
+        Pages = [];
     }
 
     #region Bindable Properties
@@ -62,7 +68,7 @@ public class PdfView : Control
     }
 
     public static readonly DependencyProperty PagesProperty =
-        DependencyProperty.Register("Pages", typeof(ObservableCollection<PdfPage>), typeof(PdfView), new FrameworkPropertyMetadata(new ObservableCollection<PdfPage>(), FrameworkPropertyMetadataOptions.AffectsRender));
+        DependencyProperty.Register("Pages", typeof(ObservableCollection<PdfPage>), typeof(PdfView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public ObservableCollection<PdfPage> Pages
     {
@@ -193,7 +199,7 @@ public class PdfView : Control
         }
         else
         {
-            CurrentPage = correctPage;
+            CurrentPage = Math.Max(1,correctPage);
         }
     }
 
@@ -205,21 +211,46 @@ public class PdfView : Control
 
     private void OnPdfBytesChanged(DependencyPropertyChangedEventArgs e)
     {
-        _pages.ForEach(p => p.Dispose());
         Trace.TraceInformation($"OnPdfBytesChanged: {e.OldValue} => {e.NewValue}");
-        _isZoomInvalid = true;
+
+        ClearDocument();
+        foreach (var page in _pages)
+            page.Dispose();
+
+        _pages.Clear();
+
+        _document?.Dispose();
+        _document = null;
+
+        Pages.Clear();
         CurrentPage = 1;
-        if (PdfBytes == null)
+        _isZoomInvalid = true;
+
+        if (PdfBytes is not byte[] pdfBytes || pdfBytes.Length == 0)
         {
             Visibility = Visibility.Collapsed;
-            Pages.Clear();
+            InvalidateVisual();
+            return;
         }
-        else
-        {
-            Visibility = Visibility.Visible;
-            _pages = [.. ((byte[])PdfBytes).ToPages()];
-        }
+
+        Visibility = Visibility.Visible;
+
+        _document = new PdfDocument(pdfBytes);
+        _pages = [.. _document.ToPages()];
+
         InvalidateVisual();
+    }
+
+    private void ClearDocument()
+    {
+        foreach (var page in _pages)
+            page.Dispose();
+
+        _pages.Clear();
+        Pages.Clear();
+
+        _document?.Dispose();
+        _document = null;
     }
 
     private void ScrollToPage(int correctPage)
@@ -311,21 +342,16 @@ public class PdfView : Control
         return lastVisibleIndex;
     }
 
+    private const int PreloadPageMargin = 2;
+
     private void LoadVisibleItems(int firstVisibleIndex, int lastVisibleIndex)
     {
-        Trace.TraceInformation($"VisiblePages changed: {firstVisibleIndex} {lastVisibleIndex}");
+        var loadFrom = Math.Max(0, firstVisibleIndex - PreloadPageMargin);
+        var loadTo = Math.Min(PageCount - 1, lastVisibleIndex + PreloadPageMargin);
 
-        for (int i = firstVisibleIndex; i <= lastVisibleIndex; i++)
-        {
-            if (i >= 0 && i < Pages.Count)
-            {
-                var page = _pages[i];
-                // Ensure the full image is loaded
-                page.RenderFullImage();
-            }
-        }
+        for (var i = loadFrom; i <= loadTo; i++)
+            _pages[i].RenderFullImage();
     }
-
     private void FitWidth()
     {
         var page = _pages[CurrentPage - 1];
@@ -372,6 +398,23 @@ public class PdfView : Control
         var currentZoom = Zoom;
         Zoom = 1;
         Zoom = (Math.Round(currentZoom * 10) / 10) + 0.1;
+    }
+
+    public void Dispose()
+    {
+        foreach (var page in _pages)
+            page.Dispose();
+
+        _pages.Clear();
+        Pages.Clear();
+
+        _document?.Dispose();
+        _document = null;
+
+        if (_scrollViewer != null)
+            _scrollViewer.ScrollChanged -= OnScrollChanged;
+
+        GC.SuppressFinalize(this);
     }
 
     private class PdfViewCommand(Action action) : ICommand

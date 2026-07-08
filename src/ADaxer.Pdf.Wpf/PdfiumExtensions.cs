@@ -1,95 +1,144 @@
 ﻿using PDFiumCore;
 using System.Diagnostics;
-using System.IO;
+using System.Runtime.InteropServices;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ADaxer.Pdf.Wpf;
+
 public static class PdfiumExtensions
 {
-    private static bool _isPdfiumInitialized = false;
-    private static void EnsureInitialized()
+    private static bool _isPdfiumInitialized;
+
+    internal static void EnsureInitialized()
     {
-        if (!_isPdfiumInitialized)
-        {
-            fpdfview.FPDF_InitLibrary();
-            _isPdfiumInitialized = true;
-        }
+        if (_isPdfiumInitialized)
+            return;
+
+        fpdfview.FPDF_InitLibrary();
+        _isPdfiumInitialized = true;
     }
 
-    public static unsafe FpdfDocumentT ToFpdfDocument(this byte[] pdfBytes)
+    public static IReadOnlyList<PdfPage> ToPages(this PdfDocument document)
+    {
+        var pages = new List<PdfPage>(document.PageCount);
+
+        for (var i = 0; i < document.PageCount; i++)
+        {
+            var page = fpdfview.FPDF_LoadPage(document.Handle, i);
+
+            try
+            {
+                pages.Add(new PdfPage(
+                    document,
+                    i + 1,
+                    fpdfview.FPDF_GetPageWidthF(page),
+                    fpdfview.FPDF_GetPageHeightF(page)));
+            }
+            finally
+            {
+                fpdfview.FPDF_ClosePage(page);
+            }
+        }
+
+        return pages;
+    }
+
+    public static BitmapSource RenderImageSource(this FpdfDocumentT document, int pageNo, int dpi)
     {
         EnsureInitialized();
-        fixed (void* ptr = pdfBytes)
-        {
-            var document = fpdfview.FPDF_LoadMemDocument(new IntPtr(ptr), pdfBytes.Length, null);
-            return document;
-        }
-    }
 
-    public static IEnumerable<PdfPage> ToPages(this byte[] pdfBytes)
-    {
-        var document = pdfBytes.ToFpdfDocument();
-        var pageCount = fpdfview.FPDF_GetPageCount(document);
-        for (int i = 0; i < pageCount; i++)
-        {
-            var page = fpdfview.FPDF_LoadPage(document, i);
-            yield return new PdfPage(document, i + 1, fpdfview.FPDF_GetPageWidthF(page), fpdfview.FPDF_GetPageHeightF(page));
-        }
-    }
-
-    public static Stream RenderImage(this FpdfDocumentT document, int pageNo, int dpi)
-    {
-        EnsureInitialized();
-        float scale = (float)dpi / 72;
-        // White color.
-        uint color = uint.MaxValue;
+        var scale = (float)dpi / 72f;
 
         var page = fpdfview.FPDF_LoadPage(document, pageNo);
-        FS_SIZEF_ size = new FS_SIZEF_();
-        fpdfview.FPDF_GetPageSizeByIndexF(document, 0, size);
 
-        double pageWidth = size.Width * scale;
-        var pageHeight = size.Height * scale;
+        if (page == null)
+            throw new InvalidOperationException($"Failed to load PDF page {pageNo}.");
 
-        var bitmap = fpdfview.FPDFBitmapCreateEx(
-                (int)pageWidth,
-                (int)pageHeight,
+        try
+        {
+            using var size = new FS_SIZEF_();
+            fpdfview.FPDF_GetPageSizeByIndexF(document, pageNo, size);
+
+            var pixelWidth = Math.Max(1, (int)Math.Ceiling(size.Width * scale));
+            var pixelHeight = Math.Max(1, (int)Math.Ceiling(size.Height * scale));
+
+            var bitmap = fpdfview.FPDFBitmapCreateEx(
+                pixelWidth,
+                pixelHeight,
                 (int)FPDFBitmapFormat.BGRA,
                 IntPtr.Zero,
                 0);
 
-        if (bitmap == null)
-            throw new Exception("failed to create a bitmap object");
+            if (bitmap == null)
+                throw new InvalidOperationException("Failed to create PDFium bitmap.");
 
-        // Leave out if you want to make the background transparent.
-        fpdfview.FPDFBitmapFillRect(bitmap, 0, 0, (int)pageWidth, (int)pageHeight, color);
+            try
+            {
+                fpdfview.FPDFBitmapFillRect(
+                    bitmap,
+                    0,
+                    0,
+                    pixelWidth,
+                    pixelHeight,
+                    uint.MaxValue);
 
-        // |          | a b 0 |
-        // | matrix = | c d 0 |
-        // |          | e f 1 |
-        using var matrix = new FS_MATRIX_();
-        using var clipping = new FS_RECTF_();
+                using var matrix = new FS_MATRIX_();
+                using var clipping = new FS_RECTF_();
 
-        matrix.A = scale;
-        matrix.B = 0;
-        matrix.C = 0;
-        matrix.D = scale;
-        matrix.E = 0;
-        matrix.F = 0;
+                matrix.A = scale;
+                matrix.B = 0;
+                matrix.C = 0;
+                matrix.D = scale;
+                matrix.E = 0;
+                matrix.F = 0;
 
-        clipping.Left = 0;
-        clipping.Right = (float)pageWidth;
-        clipping.Bottom = 0;
-        clipping.Top = (float)pageHeight;
+                clipping.Left = 0;
+                clipping.Right = pixelWidth;
+                clipping.Bottom = 0;
+                clipping.Top = pixelHeight;
 
-        fpdfview.FPDF_RenderPageBitmapWithMatrix(bitmap, page, matrix, clipping, (int)RenderFlags.RenderAnnotations);
+                fpdfview.FPDF_RenderPageBitmapWithMatrix(
+                    bitmap,
+                    page,
+                    matrix,
+                    clipping,
+                    (int)RenderFlags.RenderAnnotations);
 
+                var buffer = fpdfview.FPDFBitmapGetBuffer(bitmap);
+                var stride = fpdfview.FPDFBitmapGetStride(bitmap);
+                var bufferSize = stride * pixelHeight;
 
-        using var imageWrapper = new PdfImageWrapper(
-            bitmap,
-            (int)(pageWidth),
-            (int)(pageHeight));
+                var pixels = new byte[bufferSize];
+                Marshal.Copy(buffer, pixels, 0, bufferSize);
 
-        var stream = imageWrapper.GetPngStream();
-        return stream;
+                var source = BitmapSource.Create(
+                    pixelWidth,
+                    pixelHeight,
+                    dpi,
+                    dpi,
+                    PixelFormats.Bgra32,
+                    null,
+                    pixels,
+                    stride);
+
+                source.Freeze();
+                return source;
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError($"Error rendering image source: {ex}");
+                throw;
+            }
+            finally
+            {
+                fpdfview.FPDFBitmapDestroy(bitmap);
+            }
+        }
+        finally
+        {
+            fpdfview.FPDF_ClosePage(page);
+        }
     }
 }

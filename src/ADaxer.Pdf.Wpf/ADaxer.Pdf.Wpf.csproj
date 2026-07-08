@@ -1,58 +1,60 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+	<!-- Build -->
 	<PropertyGroup>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<UseWPF>true</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<PackageId>ADaxer.Pdf.Wpf</PackageId>
-		<Version>1.1.2</Version>
+		<VersionPrefix>1.2.0</VersionPrefix>
 		<Authors>Andreas Daxer</Authors>
 		<Company>Andreas Daxer - Entwicklung – Schulung – Beratung mit Microsoft.NET</Company>
-		<Description>A PdfViewer for WPF.</Description>
-		<PackageReleaseNotes>Source Link Enabled.</PackageReleaseNotes>
-		<Copyright>Copyright 2024, 2025 Andreas Daxer</Copyright>
-		<PackageTags>WPF PDF</PackageTags>
+		<Description>A lightweight WPF PDF viewer control with paging, zooming, fit-to-width/height and scrolling view modes, powered by PDFiumCore.</Description>
+		<PackageTags>wpf;pdf;pdf-viewer;pdfium;viewer;control</PackageTags>
+
+		<PackageProjectUrl>https://github.com/adaxer/Pdf.Wpf</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/adaxer/Pdf.Wpf</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 
-		<!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-
-		<!-- Embed source files that are not tracked by the source control manager in the PDB -->
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<DebugSymbols>true</DebugSymbols>
-		<DebugType>portable</DebugType>
-		<!-- ✅ Change from "embedded" to "portable" -->
-		<IncludeSymbols>true</IncludeSymbols>
-		<!-- ✅ Explicitly request symbols -->
-		<IncludeSource>true</IncludeSource>
-		<!-- ✅ Explicitly request source code -->
-		<SymbolsPackageFormat>snupkg</SymbolsPackageFormat>
-		<!-- ✅ Forces NuGet to create debug package -->
-		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Copyright>Copyright © 2024-2026 Andreas Daxer</Copyright>
+
+		<PackageReleaseNotes>
+			Version 1.2.0 removes the ImageSharp dependency, renders directly to WPF BitmapSource, and improves PDFium resource handling and memory usage.
+		</PackageReleaseNotes>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<DebugType>portable</DebugType>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+	</PropertyGroup>
+	
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All">
-			<!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
-		</PackageReference>
-		<PackageReference Include="PDFiumCore" Version="134.0.6982" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
+		<PackageReference Include="PDFiumCore" Version="151.0.7920" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\..\LICENSE.txt" Pack="true" PackagePath=""/>
-		<None Include="..\..\NOTICE.txt" Pack="true" PackagePath=""/>
-		<None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+		<None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+		<None Include="..\..\README.md" Pack="true" PackagePath="" />
+		<None Include="..\..\CHANGELOG.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 
 </Project>
